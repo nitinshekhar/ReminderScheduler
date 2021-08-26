@@ -1,0 +1,31 @@
+version: "3"
+services:
+  mysql-docker-container:
+    image: mysql:latest
+    networks:
+      - reminder
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=quartz
+      - MYSQL_USER=quartz
+      - MYSQL_PASSWORD=quartz
+    volumes:
+      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - 3306:3306
+  reminder-docker-container:
+    image: reminder-scheduler
+    ports:
+      - 8080:8080
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-docker-container:3306/quartz?autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true 
+      - SPRING_SQL_INIT_MODE=always
+      - SPRING_DATASOURCE_USERNAME=quartz
+      - SRPING_DATASOURCE_PASSWORD=quartz
+    depends_on:
+      - mysql-docker-container
+    networks:
+      - reminder
+networks:
+  reminder:
+    driver: bridge 
